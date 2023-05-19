@@ -1,8 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import './App.css';
-import Results from './Results';
 import Form from './Form';
+import Results from './Results';
+import { fetchImages, useBreeds } from './api/dog';
 
 function App() {
   const [selectedBreed, setSelectedBreed] = useState('');
@@ -10,49 +10,48 @@ function App() {
   const [selectedSubBreed, setSelectedSubBreed] = useState('');
   const [images, setImages] = useState<string[] | null>(null);
 
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['allBreeds'],
-    queryFn: () => fetch('https://dog.ceo/api/breeds/list/all').then((res) => res.json()),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { isLoading, error, data } = useBreeds();
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
+  if (error) {
+    return <div>Error loading data, please try again later</div>;
+  }
+
   const handleBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const breed = e.target.value;
-    console.log(breed);
+    setSelectedSubBreed('');
     setSelectedBreed(breed);
-    // const subBreeds = data.message[`${mainBreed}`];
-    // setSubBreeds(subBreeds);
-    // if (subBreeds.length > 0) {
-    // setSelectedSubBreed(subBreeds[0]);
-    // }
+    const subBreeds = data.message[`${breed}`];
+    setSubBreeds(subBreeds);
   };
 
-  // const handleSubBreedSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setSelectedSubBreed(e.target.value);
-  // };
+  const handleSubBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const subBreed = e.target.value;
+    setSelectedSubBreed(subBreed);
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setImages([]);
-    console.log(selectedBreed);
-    const res = await fetch(`https://dog.ceo/api/breed/${selectedBreed}/images/random/3`);
-    const data = await res.json();
-    console.log(data);
-    setImages(data.message);
+    const data = await fetchImages({ selectedBreed, selectedSubBreed });
+    if (data.status === 'success') {
+      setImages(data.message);
+    }
   };
 
-  // console.log(data);
   return (
     <div className="w-full flex flex-col items-center justify-center mt-4">
       <div className="w-full max-w-4xl flex justify-center border p-8 gap-4">
         <Form
-          options={Object.keys(data.message)}
+          breeds={Object.keys(data.message)}
           selectedBreed={selectedBreed}
           onBreedChange={handleBreedChange}
+          subBreeds={subBreeds}
+          selectedSubBreed={selectedSubBreed}
+          onSubBreedChange={handleSubBreedChange}
           onSubmit={handleFormSubmit}
         />
       </div>
