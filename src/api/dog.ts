@@ -13,14 +13,16 @@ export const useBreeds = () => {
 interface FetchImagesArgs {
   selectedBreed: string;
   selectedSubBreed: string;
+  selectedNumber: string;
 }
 export const fetchImages = async ({
   selectedBreed,
   selectedSubBreed,
+  selectedNumber,
 }: FetchImagesArgs): Promise<DogAPIResponse> => {
   const url = `https://dog.ceo/api/breed/${selectedBreed}${
     selectedSubBreed ? '/' + selectedSubBreed : ''
-  }/images/random/3`;
+  }/images/random/${selectedNumber}`;
   const res = await fetch(url);
   const data = await res.json();
   return data;

@@ -8,6 +8,8 @@ interface Props {
   subBreeds: string[];
   selectedSubBreed: string;
   onSubBreedChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  selectedNumber: string;
+  onNumberChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   onSubmit: (event: React.FormEvent) => void;
 }
 
@@ -18,6 +20,8 @@ const Form = ({
   subBreeds,
   selectedSubBreed,
   onSubBreedChange,
+  selectedNumber,
+  onNumberChange,
   onSubmit,
 }: Props) => {
   return (
@@ -38,6 +42,12 @@ const Form = ({
               onChange={onSubBreedChange}
             />
           )}
+          <SelectInput
+            name="Number of Images"
+            options={Array.from({ length: 10 }, (_, i) => `${i + 1}`)}
+            selected={selectedNumber}
+            onChange={onNumberChange}
+          />
         </div>
 
         <input type="submit" className="mt-4 px-4 py-2 bg-blue-500 text-white rounded" />

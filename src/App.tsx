@@ -8,6 +8,7 @@ function App() {
   const [selectedBreed, setSelectedBreed] = useState('');
   const [subBreeds, setSubBreeds] = useState([]);
   const [selectedSubBreed, setSelectedSubBreed] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('1');
   const [images, setImages] = useState<string[] | null>(null);
 
   const { isLoading, error, data } = useBreeds();
@@ -33,10 +34,14 @@ function App() {
     setSelectedSubBreed(subBreed);
   };
 
+  const handleNumberChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedNumber(e.target.value);
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setImages([]);
-    const data = await fetchImages({ selectedBreed, selectedSubBreed });
+    const data = await fetchImages({ selectedBreed, selectedSubBreed, selectedNumber });
     if (data.status === 'success') {
       setImages(data.message);
     }
@@ -52,6 +57,8 @@ function App() {
           subBreeds={subBreeds}
           selectedSubBreed={selectedSubBreed}
           onSubBreedChange={handleSubBreedChange}
+          selectedNumber={selectedNumber}
+          onNumberChange={handleNumberChange}
           onSubmit={handleFormSubmit}
         />
       </div>
