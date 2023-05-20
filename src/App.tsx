@@ -3,14 +3,14 @@ import './App.css';
 import Form from './Form';
 import Results from './Results';
 import { fetchImages, useBreeds } from './api/dog';
-import { parseValidationErrors, schema } from './lib/validate';
+import { ZodValidator } from './lib/validate';
 
 function App() {
   const [selectedBreed, setSelectedBreed] = useState('');
   const [subBreeds, setSubBreeds] = useState([]);
   const [selectedSubBreed, setSelectedSubBreed] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('1');
-  const [displayErrors, setDisplayErrors] = useState<string[]>([]);
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [images, setImages] = useState<string[] | null>(null);
 
   const { isLoading, error, data } = useBreeds();
@@ -42,13 +42,13 @@ function App() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setDisplayErrors([]);
     const parameters = { selectedBreed, selectedSubBreed, selectedNumber };
-    const validate = schema.safeParse(parameters);
-    if (!validate.success) {
-      setDisplayErrors(parseValidationErrors(validate.error));
+    const result = new ZodValidator().validate(parameters);
+    if (!result.success) {
+      setInvalidFields(result.error || []);
     } else {
       setImages([]);
+      setInvalidFields([]);
       const data = await fetchImages(parameters);
       if (data.status === 'success') {
         setImages(data.message);
@@ -68,15 +68,11 @@ function App() {
           onSubBreedChange={handleSubBreedChange}
           selectedNumber={selectedNumber}
           onNumberChange={handleNumberChange}
+          invalidFields={invalidFields}
           onSubmit={handleFormSubmit}
         />
-        {displayErrors.map((err) => (
-          <p key={err} className="text-red-500">
-            {err}
-          </p>
-        ))}
       </div>
-      <Results images={images} />
+      <Results breed={selectedBreed} images={images} />
     </div>
   );
 }

@@ -10,6 +10,7 @@ interface Props {
   onSubBreedChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   selectedNumber: string;
   onNumberChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  invalidFields: string[];
   onSubmit: (event: React.FormEvent) => void;
 }
 
@@ -22,6 +23,7 @@ const Form = ({
   onSubBreedChange,
   selectedNumber,
   onNumberChange,
+  invalidFields,
   onSubmit,
 }: Props) => {
   return (
@@ -29,16 +31,18 @@ const Form = ({
       <form onSubmit={onSubmit}>
         <div className="flex gap-4">
           <SelectInput
-            name="breeds"
+            name="Breeds"
             options={breeds}
             selected={selectedBreed}
+            isInvalid={invalidFields.includes('selectedBreed')}
             onChange={onBreedChange}
           />
           {subBreeds.length > 0 && (
             <SelectInput
-              name="sub-breeds"
+              name="Sub-breeds"
               options={subBreeds}
               selected={selectedSubBreed}
+              isInvalid={invalidFields.includes('selectedSubBreed')}
               onChange={onSubBreedChange}
             />
           )}
@@ -46,6 +50,7 @@ const Form = ({
             name="Number of Images"
             options={Array.from({ length: 10 }, (_, i) => `${i + 1}`)}
             selected={selectedNumber}
+            isInvalid={invalidFields.includes('selectedNumber')}
             onChange={onNumberChange}
           />
         </div>
