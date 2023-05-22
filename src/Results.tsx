@@ -1,16 +1,17 @@
+import { DogImage } from './App';
+
 interface Props {
-  breed: string;
-  images: string[] | null;
+  images: DogImage[] | null;
 }
-const Results = ({ breed, images }: Props) => {
+const Results = ({ images }: Props) => {
   if (images === null) return null;
 
   if (images.length == 0) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-wrap max-w-4xl gap-4 justify-center">
-      {images.map((url) => (
-        <img key={url} src={url} alt={breed} className="w-60 h-60" />
+    <div className="flex flex-wrap justify-center max-w-4xl gap-4">
+      {images.map((img) => (
+        <img key={img.image} src={img.image} alt={img.alt} className="w-60 h-60" />
       ))}
     </div>
   );

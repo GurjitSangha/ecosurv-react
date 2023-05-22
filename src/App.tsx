@@ -5,13 +5,19 @@ import Results from './Results';
 import { fetchImages, useBreeds } from './api/dog';
 import { ZodValidator } from './lib/validate';
 
+export type SearchParams = {
+  selectedBreed: string;
+  selectedSubBreed?: string;
+  selectedNumber: string;
+};
+
+export type DogImage = {
+  image: string;
+  alt: string;
+};
+
 function App() {
-  const [selectedBreed, setSelectedBreed] = useState('');
-  const [subBreeds, setSubBreeds] = useState([]);
-  const [selectedSubBreed, setSelectedSubBreed] = useState('');
-  const [selectedNumber, setSelectedNumber] = useState('1');
-  const [invalidFields, setInvalidFields] = useState<string[]>([]);
-  const [images, setImages] = useState<string[] | null>(null);
+  const [images, setImages] = useState<DogImage[] | null>(null);
 
   const { isLoading, error, data } = useBreeds();
 
@@ -23,56 +29,20 @@ function App() {
     return <div>Error loading data, please try again later</div>;
   }
 
-  const handleBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const breed = e.target.value;
-    setSelectedSubBreed('');
-    setSelectedBreed(breed);
-    const subBreeds = data.message[`${breed}`];
-    setSubBreeds(subBreeds);
-  };
-
-  const handleSubBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const subBreed = e.target.value;
-    setSelectedSubBreed(subBreed);
-  };
-
-  const handleNumberChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedNumber(e.target.value);
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parameters = { selectedBreed, selectedSubBreed, selectedNumber };
-    const result = new ZodValidator().validate(parameters);
-    if (!result.success) {
-      setInvalidFields(result.error || []);
-    } else {
-      setImages([]);
-      setInvalidFields([]);
-      const data = await fetchImages(parameters);
-      if (data.status === 'success') {
-        setImages(data.message);
-      }
+  const handleFormSubmit = async (parameters: SearchParams) => {
+    setImages([]);
+    const data = await fetchImages(parameters);
+    if (data.status === 'success') {
+      setImages(data.message.map((image) => ({ image, alt: parameters.selectedBreed })));
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center mt-4">
-      <div className="w-full max-w-4xl flex flex-col items-center border p-8 gap-4">
-        <Form
-          breeds={Object.keys(data.message)}
-          selectedBreed={selectedBreed}
-          onBreedChange={handleBreedChange}
-          subBreeds={subBreeds}
-          selectedSubBreed={selectedSubBreed}
-          onSubBreedChange={handleSubBreedChange}
-          selectedNumber={selectedNumber}
-          onNumberChange={handleNumberChange}
-          invalidFields={invalidFields}
-          onSubmit={handleFormSubmit}
-        />
+    <div className="flex flex-col items-center justify-center w-full mt-4">
+      <div className="flex flex-col items-center w-full max-w-4xl gap-4 p-8">
+        <Form breedsData={data.message} onSubmit={handleFormSubmit} />
       </div>
-      <Results breed={selectedBreed} images={images} />
+      <Results images={images} />
     </div>
   );
 }

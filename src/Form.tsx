@@ -1,41 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SelectInput from './SelectInput';
+import { ZodValidator } from './lib/validate';
+import { SearchParams } from './App';
 
 interface Props {
-  breeds: string[];
-  selectedBreed: string;
-  onBreedChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  subBreeds: string[];
-  selectedSubBreed: string;
-  onSubBreedChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  selectedNumber: string;
-  onNumberChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  invalidFields: string[];
-  onSubmit: (event: React.FormEvent) => void;
+  breedsData: Record<string, string[]>;
+  onSubmit: (params: SearchParams) => void;
 }
 
-const Form = ({
-  breeds,
-  selectedBreed,
-  onBreedChange,
-  subBreeds,
-  selectedSubBreed,
-  onSubBreedChange,
-  selectedNumber,
-  onNumberChange,
-  invalidFields,
-  onSubmit,
-}: Props) => {
+const Form = ({ breedsData, onSubmit }: Props) => {
+  const [selectedBreed, setSelectedBreed] = useState('');
+  const [subBreeds, setSubBreeds] = useState<string[]>([]);
+  const [selectedSubBreed, setSelectedSubBreed] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('1');
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
+
+  const handleBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const breed = e.target.value;
+    setSelectedSubBreed('');
+    setSelectedBreed(breed);
+    const subBreeds = breedsData[`${breed}`];
+    setSubBreeds(subBreeds);
+  };
+
+  const handleSubBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const subBreed = e.target.value;
+    setSelectedSubBreed(subBreed);
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedNumber(e.target.value);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parameters = { selectedBreed, selectedSubBreed, selectedNumber };
+    const result = new ZodValidator().validate(parameters);
+    if (!result.success) {
+      setInvalidFields(result.error || []);
+    } else {
+      setInvalidFields([]);
+      onSubmit(parameters);
+    }
+  };
+
   return (
     <>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div className="flex gap-4">
           <SelectInput
             name="Breeds"
-            options={breeds}
+            options={Object.keys(breedsData)}
             selected={selectedBreed}
             isInvalid={invalidFields.includes('selectedBreed')}
-            onChange={onBreedChange}
+            onChange={handleBreedChange}
           />
           {subBreeds.length > 0 && (
             <SelectInput
@@ -43,7 +61,7 @@ const Form = ({
               options={subBreeds}
               selected={selectedSubBreed}
               isInvalid={invalidFields.includes('selectedSubBreed')}
-              onChange={onSubBreedChange}
+              onChange={handleSubBreedChange}
             />
           )}
           <SelectInput
@@ -51,11 +69,10 @@ const Form = ({
             options={Array.from({ length: 10 }, (_, i) => `${i + 1}`)}
             selected={selectedNumber}
             isInvalid={invalidFields.includes('selectedNumber')}
-            onChange={onNumberChange}
+            onChange={handleNumberChange}
           />
+          <input type="submit" className="px-4 py-1 text-white bg-blue-500 rounded" />
         </div>
-
-        <input type="submit" className="mt-4 px-4 py-2 bg-blue-500 text-white rounded" />
       </form>
     </>
   );
